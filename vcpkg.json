@@ -1,0 +1,21 @@
+{
+    "name": "tangram-test",
+    "version-string": "0.1.0",
+    "dependencies": [
+        "magnum",
+        "mapbox-variant",
+        "yaml-cpp",
+        {
+            "name": "magnum-integration",
+            "features": [
+                "imgui"
+            ]
+        },
+        {
+            "name": "imgui",
+            "features": [
+                "docking-experimental"
+            ]
+        }
+    ]
+}
