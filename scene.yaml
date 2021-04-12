@@ -1,0 +1,112 @@
+global:
+    access_token: "pk.eyJ1IjoiZ29kZWVwIiwiYSI6ImNraWgydmZjejFvcnIyc3JzZ3k5bGR0aTkifQ.jWxsJ9xDQ3iRhwqVGFQzPw"
+fonts:
+    Montserrat:
+        url: https://fonts.gstatic.com/s/montserrat/v7/zhcz-_WihjSQC0oHJ9TCYL3hpw3pgy2gAi-Ip7WPMi0.woff
+    Open Sans:
+        - weight: 400
+          url: https://fonts.gstatic.com/s/opensans/v13/wMws1cEtxWZc6AZZIpiqWALUuEpTyoUstqEm5AMlJo4.woff
+        - weight: 400
+          style: italic
+          url: https://fonts.gstatic.com/s/opensans/v13/O4NhV7_qs9r9seTo7fnsVLO3LdcAZYWl9Si6vvxL-qU.woff
+sources:
+    terrain-source:
+        type: Raster
+        tms: true
+        url: http://localhost:8080/geoserver/gwc/service/tms/1.0.0/cite%3Ageotiff_coverage4@EPSG%3A3857@png/{z}/{x}/{y}.png
+    mbtiles-source:
+        type: MVT # The source expects TopoJSON tile data.
+        url: bremen.mbtiles # The MBTiles file is located relative to the scene file.
+        max_zoom: 16 # Other parameters are applied as usual.
+textures:
+    pois:
+        url: img/poi_icons_32.png
+        sprites:
+            plane: [0, 0, 32, 32]
+            tree: [0, 185, 32, 32]
+            sunburst: [0, 629, 32, 32]
+            restaurant: [0, 777, 32, 32]
+            cafe: [0, 814, 32, 32]
+            museum: [0, 518, 32, 32]
+            bar: [0, 887, 32, 32]
+            train: [0, 74, 32, 32]
+            bus: [0, 148, 32, 32]
+            hospital: [0, 444, 32, 32]
+            parking: [0, 1073, 32, 32]
+            info: [0, 1110, 32, 32]
+            hotel: [0, 259, 32, 32]
+            bookstore: [0, 333, 32, 32]
+            shield: [0, 1142, 32, 32]
+            arrow: [1, 1175, 22, 22]
+styles:
+    raster-overlay2:
+        base: raster
+        blend: overlay
+        blend_order: 2
+    polygon-overlay:
+        base: polygons
+        blend: overlay
+        blend_order: 1
+cameras:
+    overview:
+        type: flat
+layers:
+    waters:
+        data:
+            source: mbtiles-source
+            layer: "water"
+        draw:
+            polygons:
+                order: 1
+                color: "#9dc3de"
+    roads:
+        data:
+            source: mbtiles-source
+            layer: "transportation"
+        filter: { not: { class: rail } }
+        draw:
+            lines:
+                color: white
+                width: 1px
+                order: 1
+                outline:
+                    width: 0.5px
+                    color: black
+    boundaries:
+        data:
+            source: mbtiles-source
+            layer: "boundary"
+        draw:
+            lines:
+                color: red
+                width: 1px
+                order: 1
+    buildings:
+        data:
+            source: mbtiles-source
+            layer: "building"
+        draw:
+            polygons:
+                order: 1
+                color: [.83, .83, .83]
+    places:
+        data:
+            source: mbtiles-source
+            layer: "place"
+        draw:
+            points:
+                order: 11
+                text:
+                    text_source: [name:de, name]
+                    order: 1
+                    font:
+                        family: Montserrat
+                        style: normal
+                        size: 16px
+                        fill: red
+
+    terrain-raster:
+        data: { source: terrain-source }
+        draw:
+            raster:
+                order: 0

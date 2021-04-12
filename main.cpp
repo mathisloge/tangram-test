@@ -50,12 +50,11 @@ namespace Magnum
             Color4 _clearColor = 0x72909aff_rgbaf;
             Float _floatValue = 0.0f;
 
-            Tangram::MagnumTexture tangram_;
+            std::unique_ptr<Tangram::MagnumTexture> tangram_;
         };
 
         ImGuiExample::ImGuiExample(const Arguments &arguments) : Platform::Application{arguments,
-                                                                                       Configuration{}.setTitle("Magnum ImGui Example").setWindowFlags(Configuration::WindowFlag::Resizable)},
-                                                                 tangram_{512, 512, "file://D:/dev/tangram-test/build/scene.yaml", "NEXTZEN_API_KEY", "global.sdk_api_key"}
+                                                                                       Configuration{}.setTitle("Magnum ImGui Example").setWindowFlags(Configuration::WindowFlag::Resizable)}
         {
             ImGui::CreateContext();
 
@@ -78,6 +77,8 @@ namespace Magnum
 #endif
 
             Tangram::setContext(Magnum::GL::Context::current());
+
+            tangram_ = std::make_unique<Tangram::MagnumTexture>(512, 512, "file://D:/dev/tangram-test/build/scene.yaml", "NEXTZEN_API_KEY", "global.sdk_api_key");
         }
 
         void ImGuiExample::drawEvent()
@@ -115,7 +116,8 @@ namespace Magnum
                 ImGui::Begin("Another Window", &_showAnotherWindow, ImGuiWindowFlags_NoMove);
 
                 const auto size = ImGui::GetWindowSize();
-                ImGuiIntegration::image(tangram_.texture(), {static_cast<float>(size.x), static_cast<float>(size.y)});
+
+                ImGuiIntegration::image(tangram_->texture(), {static_cast<float>(size.x), static_cast<float>(size.y)});
                 if (ImGui::IsItemHovered())
                 {
                     static bool is_dragging = false;
@@ -124,23 +126,28 @@ namespace Magnum
                         const auto mpos = ImGui::GetMousePos();
                         if (!is_dragging)
                         {
-                            tangram_.handleStartDrag(mpos.x, mpos.y);
+                            tangram_->handleStartDrag(mpos.x, mpos.y);
                             is_dragging = true;
                         }
                         const auto dmpos = ImGui::GetMouseDragDelta(ImGuiMouseButton_Left);
-                        tangram_.handleDrag(mpos.x, mpos.y);
+                        tangram_->handleDrag(mpos.x, mpos.y);
                     }
                     else
                     {
                         if (is_dragging)
                         {
-                            tangram_.handleEndDrag();
+                            tangram_->handleEndDrag();
                         }
                         is_dragging = false;
                     }
                 }
+                ImGui::SetCursorPos(ImGui::GetCursorStartPos());
+                if (ImGui::Button("+"))
+                    tangram_->zoomDelta(1.f);
+                if (ImGui::Button("-"))
+                    tangram_->zoomDelta(-1.f);
 
-                tangram_.resizeScene(size.x, size.y);
+                tangram_->resizeScene(size.x * 2, size.y * 2);
 
                 ImGui::End();
             }
@@ -165,14 +172,14 @@ namespace Magnum
 
             _imgui.drawFrame();
 
-            tangram_.render(ImGui::GetTime());
-
             /* Reset state. Only needed if you want to draw something else with
             different state after. */
             GL::Renderer::enable(GL::Renderer::Feature::DepthTest);
             GL::Renderer::enable(GL::Renderer::Feature::FaceCulling);
             GL::Renderer::disable(GL::Renderer::Feature::ScissorTest);
             GL::Renderer::disable(GL::Renderer::Feature::Blending);
+
+            tangram_->render(ImGui::GetTime());
 
             swapBuffers();
             redraw();
